@@ -499,27 +499,27 @@ function sendZap(){
   if(!C.webhook) return;
   var nombre=(document.getElementById('convNombre')?document.getElementById('convNombre').value||'':'');
   var now=new Date();
-  
-  // Cambiar de JSON a FormData
-  const formData = new FormData();
-  formData.append('propiedad', C.nombre);
-  formData.append('fecha', now.toLocaleDateString('es-MX'));
-  formData.append('hora', now.toLocaleTimeString('es-MX'));
-  formData.append('nombre', nombre);
-  formData.append('atencion', ans['q1']||'');
-  formData.append('cambio', ans['q2']||'');
-  formData.append('intencion', ans['q3']||'');
-  formData.append('metodo', ans['q4']||'');
-  formData.append('gastos', ans['q5']||'');
-  formData.append('decision', ans['q6']||5);
-  formData.append('preferencia', ans['q7']||'');
-  formData.append('score', calcScore());
-  formData.append('clasificacion', classify(calcScore()));
-  formData.append('estado', 'Nuevo');
-  formData.append('fuente', 'Experiencia Privada Web');
-  
-  fetch(C.webhook, {method:'POST', body: formData})
-    .catch(function(e){console.warn(e);});
+  fetch(C.webhook,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      nombre:nombre,
+      propiedad:C.nombre,
+      fecha:now.toLocaleDateString('es-MX'),
+      hora:now.toLocaleTimeString('es-MX'),
+      atencion:ans['q1']||'',
+      cambio:ans['q2']||'',
+      intencion:ans['q3']||'',
+      metodo:ans['q4']||'',
+      gastos:ans['q5']||'',
+      decision:ans['q6']||5,
+      preferencia:ans['q7']||'',
+      score:calcScore(),
+      clasificacion:classify(calcScore()),
+      estado:'Nuevo',
+      fuente:'Experiencia Privada Web'
+    })
+  }).catch(function(e){console.warn(e);});
 }
 </script>
 </body>
