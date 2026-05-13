@@ -313,6 +313,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
     </div>
     <div class="conv-title">Todo está listo.</div>
     <p class="conv-body">Con base en tus respuestas, esta propiedad podría encajar muy bien con lo que estás buscando.<br><br>El siguiente paso es coordinar una experiencia privada para conocerla correctamente y resolver cualquier duda sobre disponibilidad, proceso y escenario financiero completo.</p>
+    <input type="text" id="convNombre" placeholder="Tu nombre completo" style="width:100%;padding:16px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(198,168,107,0.25);color:var(--white);font-family:'Montserrat',sans-serif;font-size:13px;font-weight:400;letter-spacing:0.5px;outline:none;margin-bottom:10px;-webkit-appearance:none;border-radius:1px;" oninput="this.style.borderColor=this.value.trim()?'var(--gold)':'rgba(198,168,107,0.25)'">
     <button class="conv-cta" onclick="agendarWA()">Agendar experiencia privada →</button>
     <button class="conv-wa" onclick="goWA()">Hablar con Enrique ahora</button>
     <div class="conv-neri">Enrique Neri · Century 21 Haus · Cuernavaca</div>
@@ -454,7 +455,7 @@ function diagNext(){
   }
   if(step===TOTAL){
     if(ans['q7']==='Hablar directamente con Enrique'){ sendZap(); goWA(); return; }
-    sendZap(); show('propiedad'); return;
+    show('propiedad'); return;
   }
   document.getElementById('step-'+step).classList.remove('active');
   step++;
@@ -487,15 +488,20 @@ function goConv(){
 }
 
 function agendarWA(){
-  var msg=encodeURIComponent('Hola Enrique, soy de '+C.nombre+'. Folio '+_folio+'. Quiero agendar la experiencia privada.');
+  var nombre=(document.getElementById('convNombre').value||'').trim();
+  if(!nombre){ document.getElementById('convNombre').focus(); document.getElementById('convNombre').style.borderColor='#e8a060'; return; }
+  sendZap();
+  var msg=encodeURIComponent('Soy '+nombre+', quiero agendar experiencia privada. Propiedad: '+C.nombre+'. Folio '+_folio+'.');
   window.location.href='https://wa.me/'+C.wa+'?text='+msg;
 }
 
 function sendZap(){
   if(!C.webhook) return;
+  var nombre=(document.getElementById('convNombre')?document.getElementById('convNombre').value||'':'');
   var now=new Date();
   fetch(C.webhook,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({propiedad:C.nombre,fecha:now.toLocaleDateString('es-MX'),hora:now.toLocaleTimeString('es-MX'),
+    nombre:nombre,
     atencion:ans['q1']||'',cambio:ans['q2']||'',intencion:ans['q3']||'',metodo:ans['q4']||'',
     gastos:ans['q5']||'',decision:ans['q6']||5,preferencia:ans['q7']||'',
     score:calcScore(),clasificacion:classify(calcScore()),estado:'Nuevo',fuente:'Experiencia Privada Web'})
