@@ -176,6 +176,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
   </div>
   <div class="diag-bar"><div class="diag-bar-fill" id="diagFill"></div></div>
 
+  <!-- NOMBRE -->
+  <div class="step active" id="step-0">
+    <div class="q-num">Antes de comenzar</div>
+    <div class="q-title">¿Cómo te <em>llamas?</em></div>
+    <div class="q-hint">Para personalizar tu diagnóstico privado.</div>
+    <input type="text" id="inputNombre" placeholder="Escribe tu nombre aquí…" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(198,168,107,0.2);border-radius:1px;padding:14px 16px;font-family:Montserrat,sans-serif;font-size:14px;font-weight:400;color:var(--white);outline:none;-webkit-appearance:none;margin-top:8px;box-sizing:border-box;" oninput="this.style.borderColor=this.value.trim()?'var(--gold)':'rgba(198,168,107,0.2)'"><div style="font-size:9px;color:rgba(255,255,255,0.18);margin-top:10px;letter-spacing:0.5px;">Solo para identificar tu diagnóstico. No se comparte con nadie más.</div>
+  </div>
+
   <!-- Q1 -->
   <div class="step active" id="step-1">
     <div class="q-num">Pregunta 01</div>
@@ -313,7 +321,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
     </div>
     <div class="conv-title">Todo está listo.</div>
     <p class="conv-body">Con base en tus respuestas, esta propiedad podría encajar muy bien con lo que estás buscando.<br><br>El siguiente paso es coordinar una experiencia privada para conocerla correctamente y resolver cualquier duda sobre disponibilidad, proceso y escenario financiero completo.</p>
-    <input type="text" id="convNombre" placeholder="Tu nombre completo" style="width:100%;padding:16px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(198,168,107,0.25);color:var(--white);font-family:'Montserrat',sans-serif;font-size:13px;font-weight:400;letter-spacing:0.5px;outline:none;margin-bottom:10px;-webkit-appearance:none;border-radius:1px;" oninput="this.style.borderColor=this.value.trim()?'var(--gold)':'rgba(198,168,107,0.25)'">
     <button class="conv-cta" onclick="agendarWA()">Agendar experiencia privada →</button>
     <button class="conv-wa" onclick="goWA()">Hablar con Enrique ahora</button>
     <div class="conv-neri">Enrique Neri · Century 21 Haus · Cuernavaca</div>
@@ -351,7 +358,7 @@ var C = {
   // Tu número con código de país. NO cambies esto.
 
   // ── 4. ZAPIER WEBHOOK (opcional) ─────────────────────────
-  webhook: "https://hooks.zapier.com/hooks/catch/27465214/4yeahm0/",
+  webhook: "",
   // Si tienes Zapier conectado, pega la URL del webhook aquí.
   // Si no, déjalo vacío ("") y los datos llegarán solo por WhatsApp.
 
@@ -407,7 +414,8 @@ document.getElementById('propFicha').href         = C.ficha;
 })();
 
 // State
-var ans={}, pts={}, step=1, TOTAL=7;
+var ans={}, pts={}, step=0, TOTAL=7;
+var prospectNombre="";
 
 function show(id){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
@@ -441,21 +449,31 @@ function moveSlider(v){
 moveSlider(5);
 
 function updStep(){
-  var pct = ((step-1)/TOTAL*100);
+  var pct = step===0 ? 0 : ((step-1)/TOTAL*100);
   document.getElementById('diagFill').style.width = pct+'%';
-  document.getElementById('diagCounter').textContent = step+' / '+TOTAL;
-  document.getElementById('backBtn').style.visibility = step===1?'hidden':'visible';
+  document.getElementById('diagCounter').textContent = step===0 ? '·' : step+' / '+TOTAL;
+  document.getElementById('backBtn').style.visibility = step<=1?'hidden':'visible';
   document.getElementById('nextBtn').textContent = step===TOTAL?'Ver propiedad →':'Siguiente →';
 }
 
 function diagNext(){
+  if(step===0){
+    var n=document.getElementById('inputNombre').value.trim();
+    prospectNombre = n || 'Sin nombre';
+    document.getElementById('step-0').classList.remove('active');
+    step=1;
+    document.getElementById('step-1').classList.add('active');
+    window.scrollTo(0,0);
+    updStep();
+    return;
+  }
   if(step===6){
     var v=parseInt(document.getElementById('sliderInput').value);
     ans['q6']=v; pts['q6']=v>=9?30:v>=7?20:v>=5?10:0;
   }
   if(step===TOTAL){
     if(ans['q7']==='Hablar directamente con Enrique'){ sendZap(); goWA(); return; }
-    show('propiedad'); return;
+    sendZap(); show('propiedad'); return;
   }
   document.getElementById('step-'+step).classList.remove('active');
   step++;
@@ -465,7 +483,15 @@ function diagNext(){
 }
 
 function diagBack(){
-  if(step===1){ show('portada'); return; }
+  if(step===0){ show('portada'); return; }
+  if(step===1){
+    document.getElementById('step-1').classList.remove('active');
+    step=0;
+    document.getElementById('step-0').classList.add('active');
+    window.scrollTo(0,0);
+    updStep();
+    return;
+  }
   document.getElementById('step-'+step).classList.remove('active');
   step--;
   document.getElementById('step-'+step).classList.add('active');
@@ -488,37 +514,37 @@ function goConv(){
 }
 
 function agendarWA(){
-  var nombre=(document.getElementById('convNombre').value||'').trim();
-  if(!nombre){ document.getElementById('convNombre').focus(); document.getElementById('convNombre').style.borderColor='#e8a060'; return; }
-  sendZap();
-  var msg=encodeURIComponent('Soy '+nombre+', quiero agendar experiencia privada. Propiedad: '+C.nombre+'. Folio '+_folio+'.');
+  var nombre=prospectNombre&&prospectNombre!='Sin nombre'?prospectNombre:'un prospecto';
+  var msg=encodeURIComponent('Hola Enrique, soy '+nombre+'. Vi la propiedad en '+C.nombre+'. Folio '+_folio+'. Quiero agendar la experiencia privada.');
   window.location.href='https://wa.me/'+C.wa+'?text='+msg;
 }
 
 function sendZap(){
   if(!C.webhook) return;
-  var nombre=(document.getElementById('convNombre')?document.getElementById('convNombre').value||'':'');
   var now=new Date();
-  var params=new URLSearchParams();
-  params.append('nombre',nombre);
-  params.append('propiedad',C.nombre);
-  params.append('fecha',now.toLocaleDateString('es-MX'));
-  params.append('hora',now.toLocaleTimeString('es-MX'));
-  params.append('atencion',ans['q1']||'');
-  params.append('cambio',ans['q2']||'');
-  params.append('intencion',ans['q3']||'');
-  params.append('metodo',ans['q4']||'');
-  params.append('gastos',ans['q5']||'');
-  params.append('decision',ans['q6']||5);
-  params.append('preferencia',ans['q7']||'');
-  params.append('score',calcScore());
-  params.append('clasificacion',classify(calcScore()));
-  params.append('estado','Nuevo');
-  params.append('fuente','Experiencia Privada Web');
-  fetch(C.webhook,{
-    method:'POST',
-    mode:'no-cors',
-    body:params
+  var data={
+    nombre:prospectNombre,
+    propiedad:C.nombre,
+    fecha:now.toLocaleDateString('es-MX'),
+    hora:now.toLocaleTimeString('es-MX'),
+    atencion:ans['q1']||'',
+    cambio:ans['q2']||'',
+    intencion:ans['q3']||'',
+    metodo:ans['q4']||'',
+    gastos:ans['q5']||'',
+    decision:String(ans['q6']||5),
+    preferencia:ans['q7']||'',
+    score:String(calcScore()),
+    clasificacion:classify(calcScore()),
+    estado:'Nuevo',
+    fuente:'Experiencia Privada Web'
+  };
+  var body=Object.keys(data).map(function(k){
+    return encodeURIComponent(k)+'='+encodeURIComponent(data[k]);
+  }).join('&');
+  fetch(C.webhook,{method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:body
   }).catch(function(e){console.warn(e);});
 }
 </script>
