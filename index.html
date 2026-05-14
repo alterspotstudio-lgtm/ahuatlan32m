@@ -535,19 +535,26 @@ function agendarWA(){
 function sendZap(){
   if(!C.webhook) return;
   var now=new Date(), sc=calcScore();
-  var data={
-    nombre:prospectNombre, propiedad:C.nombre,
-    fecha:now.toLocaleDateString('es-MX'), hora:now.toLocaleTimeString('es-MX'),
-    atencion:ans['q1']||'', cambio:ans['q2']||'', intencion:ans['q3']||'',
-    metodo:ans['q4']||'', gastos:ans['q5']||'', decision:String(ans['q6']||5),
-    preferencia:ans['q7']||'', score:String(sc), clasificacion:classify(sc),
-    estado:'Nuevo', fuente:'Experiencia Privada Web'
-  };
-  fetch(C.webhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
-  .catch(function(){
-    var img=new Image();
-    img.src=C.webhook+'?'+Object.keys(data).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(data[k]);}).join('&');
-  });
+  
+  var params=new URLSearchParams();
+  params.append('nombre',prospectNombre);
+  params.append('propiedad',C.nombre);
+  params.append('fecha',now.toLocaleDateString('es-MX'));
+  params.append('hora',now.toLocaleTimeString('es-MX'));
+  params.append('atencion',ans['q1']||'');
+  params.append('cambio',ans['q2']||'');
+  params.append('intencion',ans['q3']||'');
+  params.append('metodo',ans['q4']||'');
+  params.append('gastos',ans['q5']||'');
+  params.append('decision',String(ans['q6']||5));
+  params.append('preferencia',ans['q7']||'');
+  params.append('score',String(sc));
+  params.append('clasificacion',classify(sc));
+  params.append('estado','Nuevo');
+  params.append('fuente','Experiencia Privada Web');
+  
+  fetch(C.webhook,{method:'POST',mode:'no-cors',body:params})
+    .catch(function(e){console.warn(e);});
 }
 </script>
 </body>
