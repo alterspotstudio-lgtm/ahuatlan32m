@@ -159,8 +159,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
     <div class="portada-content">
       <div class="portada-line"></div>
       <div class="portada-tag" style="justify-content:center;margin-bottom:14px;font-size:8px;letter-spacing:3px;">ENRIQUE NERI &nbsp;·&nbsp; ASESOR INMOBILIARIO</div>
-      <div class="portada-tagline" style="text-align:center;max-width:420px;margin:0 auto 8px;">Las mejores decisiones inmobiliarias<br><strong>comienzan antes de visitar una propiedad.</strong></div>
-      <div class="portada-sub" style="text-align:center;max-width:360px;margin:0 auto;">Este diagnóstico privado fue diseñado para ayudarte a identificar si esta oportunidad realmente encaja contigo.</div>
+      <div class="portada-tagline" style="text-align:center;max-width:420px;margin:0 auto 8px;">No vendemos propiedades.<br><strong>Conectamos personas con el lugar correcto.</strong></div>
+      <div class="portada-sub" style="text-align:center;max-width:360px;margin:0 auto;">Antes de visitar, necesitamos saber si esta propiedad realmente encaja con tu vida. Aquí comienza esa conversación.</div>
       <div class="portada-sep"></div>
       <button class="btn-gold" onclick="show('diagnostico')">Iniciar experiencia →</button>
       <button class="btn-ghost" onclick="goWA()">Hablar con Enrique ahora</button>
@@ -321,7 +321,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
     </div>
     <div class="conv-title">Todo está listo.</div>
     <p class="conv-body">Con base en tus respuestas, esta propiedad podría encajar muy bien con lo que estás buscando.<br><br>El siguiente paso es coordinar una experiencia privada para conocerla correctamente y resolver cualquier duda sobre disponibilidad, proceso y escenario financiero completo.</p>
-    <button class="conv-cta" onclick="agendarWA()">Agendar experiencia privada →</button>
+    <button class="conv-cta" onclick="agendarWA()">Confirmar cita por WhatsApp →</button>
     <button class="conv-wa" onclick="goWA()">Hablar con Enrique ahora</button>
     <div class="conv-neri">Enrique Neri · Century 21 Haus · Cuernavaca</div>
   </div>
@@ -342,7 +342,7 @@ var C = {
   // Descripción breve (2-3 líneas). Enfoca en beneficios, no características técnicas.
 
   // ── 2. FOTO DE PORTADA ────────────────────────────────────
-  foto   : "https://res.cloudinary.com/db37gqv2s/image/upload/v1778547376/fotoahuatlan_tnch5o.jpg",
+  foto   : "https://res.cloudinary.com/db37gqv2s/image/upload/v1778729708/Hailuo_Image_White_modern_two-story_house_with_palm_tree_on_the_left_wide_concrete_patio._Slow_zoom_in._Day_to_n_511164143023353862_pfxz7l.png",
   // Pega aquí la URL directa de la foto principal de la propiedad.
   // Recomendado: sube la imagen a tu Vercel project (carpeta /public)
   // y pon la ruta así: "/foto-portada.jpg"
@@ -459,7 +459,14 @@ function updStep(){
 function diagNext(){
   if(step===0){
     var n=document.getElementById('inputNombre').value.trim();
-    prospectNombre = n || 'Sin nombre';
+    if(!n){
+      var inp=document.getElementById('inputNombre');
+      inp.style.borderColor='#e8a060';
+      inp.placeholder='Escribe tu nombre para continuar…';
+      inp.focus();
+      return;
+    }
+    prospectNombre = n;
     document.getElementById('step-0').classList.remove('active');
     step=1;
     document.getElementById('step-1').classList.add('active');
@@ -522,6 +529,21 @@ function agendarWA(){
 function sendZap(){
   if(!C.webhook) return;
   var now=new Date();
+  /*
+   * ZAPIER — Cómo funciona esta conexión:
+   * 1. Se envía un POST en JSON al webhook de Zapier (Catch Hook).
+   * 2. Zapier recibe los campos listos para mapear a Airtable:
+   *    nombre, propiedad, fecha, hora, atencion, cambio, intencion,
+   *    metodo, gastos, decision, preferencia, score, clasificacion,
+   *    estado, fuente.
+   * 3. En Zapier: Trigger = "Webhooks by Zapier > Catch Hook"
+   *              Action  = "Airtable > Create Record"
+   *    Mapea cada campo de Zapier a la columna exacta en Airtable.
+   * 4. Asegúrate de que el Zap esté PUBLICADO (toggle ON).
+   *    En modo borrador o test, Zapier solo acepta peticiones
+   *    mientras la pantalla de "Test trigger" está abierta.
+   */
+  var sc=calcScore();
   var data={
     nombre:prospectNombre,
     propiedad:C.nombre,
@@ -534,15 +556,29 @@ function sendZap(){
     gastos:ans['q5']||'',
     decision:String(ans['q6']||5),
     preferencia:ans['q7']||'',
-    score:String(calcScore()),
-    clasificacion:classify(calcScore()),
+    score:String(sc),
+    clasificacion:classify(sc),
     estado:'Nuevo',
     fuente:'Experiencia Privada Web'
   };
-  fetch(C.webhook,{method:'POST',
+  /* Intento principal: fetch JSON */
+  fetch(C.webhook,{
+    method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify(data)
-  }).catch(function(e){console.warn(e);});
+  }).then(function(r){
+    if(!r.ok) throw new Error('HTTP '+r.status);
+  }).catch(function(e){
+    /* Fallback: si fetch falla (CORS/red), intenta via URL params */
+    try{
+      var qs=Object.keys(data).map(function(k){
+        return encodeURIComponent(k)+'='+encodeURIComponent(data[k]);
+      }).join('&');
+      var img=new Image();
+      img.src=C.webhook+'?'+qs;
+    }catch(e2){console.warn('Zapier fallback error:',e2);}
+    console.warn('Zapier fetch error:',e);
+  });
 }
 </script>
 </body>
