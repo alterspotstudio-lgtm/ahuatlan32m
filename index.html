@@ -575,30 +575,26 @@ function sendZap(){
   if(!C.webhook) return;
   var now=new Date(), sc=calcScore();
 
-  var payload={
-    nombre       : prospectNombre,
-    propiedad    : C.nombre,
-    fecha        : now.toLocaleDateString('es-MX'),
-    hora         : now.toLocaleTimeString('es-MX'),
-    atencion     : ans['q1']||'',
-    cambio       : ans['q2']||'',
-    intencion    : ans['q3']||'',
-    metodo       : ans['q4']||'',
-    gastos       : ans['q5']||'',
-    decision     : String(ans['q6']||5),
-    preferencia  : ans['q7']||'',
-    score        : String(sc),
-    clasificacion: classify(sc),
-    estado       : 'Nuevo',
-    fuente       : 'Experiencia Privada Web'
-  };
+  var formData = new FormData();
+  formData.append('nombre', prospectNombre);
+  formData.append('propiedad', C.nombre);
+  formData.append('fecha', now.toLocaleDateString('es-MX'));
+  formData.append('hora', now.toLocaleTimeString('es-MX'));
+  formData.append('atencion', ans['q1']||'');
+  formData.append('cambio', ans['q2']||'');
+  formData.append('intencion', ans['q3']||'');
+  formData.append('metodo', ans['q4']||'');
+  formData.append('gastos', ans['q5']||'');
+  formData.append('decision', String(ans['q6']||5));
+  formData.append('preferencia', ans['q7']||'');
+  formData.append('score', String(sc));
+  formData.append('clasificacion', classify(sc));
+  formData.append('estado', 'Nuevo');
+  formData.append('fuente', 'Experiencia Privada Web');
 
-  // Zapier Catch Hook acepta JSON sin restricción de CORS
   fetch(C.webhook, {
-    method : 'POST',
-    mode   : 'no-cors',
-    headers: {'Content-Type':'application/json'},
-    body   : JSON.stringify(payload)
+    method: 'POST',
+    body: formData
   }).catch(function(e){ console.warn('Zapier error:', e); });
 }
 </script>
