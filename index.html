@@ -189,13 +189,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
     <div class="q-num">Pregunta 01</div>
     <div class="q-title">¿Qué hizo que esta propiedad <em>llamara tu atención?</em></div>
     <div class="q-hint">Selecciona lo que más resonó contigo.</div>
-    <div class="opt-grid2">
-      <button class="opt" onclick="pick(1,this,'Ubicación','La ubicación define cómo te mueves por la ciudad cada día.')"><div class="opt-dot">✓</div><div><div class="opt-main">Ubicación</div></div></button>
-      <button class="opt" onclick="pick(1,this,'Diseño','El diseño de un espacio define cómo te sientes dentro de él.')"><div class="opt-dot">✓</div><div><div class="opt-main">Diseño</div></div></button>
-      <button class="opt" onclick="pick(1,this,'Precio','Un buen precio en la zona correcta es una oportunidad real.')"><div class="opt-dot">✓</div><div><div class="opt-main">Precio</div></div></button>
-      <button class="opt" onclick="pick(1,this,'Inversión','Pensar en largo plazo es la marca de una decisión inteligente.')"><div class="opt-dot">✓</div><div><div class="opt-main">Inversión</div></div></button>
-      <button class="opt" onclick="pick(1,this,'Privacidad','La privacidad en casa no es un lujo. Es una necesidad.')"><div class="opt-dot">✓</div><div><div class="opt-main">Privacidad</div></div></button>
-      <button class="opt" onclick="pick(1,this,'Espacios','Los espacios correctos cambian la calidad de vida.')"><div class="opt-dot">✓</div><div><div class="opt-main">Espacios</div></div></button>
+    <div class="q-hint" style="color:rgba(198,168,107,0.6);margin-top:-16px;margin-bottom:16px;">Puedes elegir todas las que apliquen.</div>
+    <div class="opt-grid2" id="q1-opts">
+      <button class="opt" onclick="pickMulti(1,this,'Ubicación','La ubicación define cómo te mueves por la ciudad cada día.')"><div class="opt-dot">✓</div><div><div class="opt-main">Ubicación</div></div></button>
+      <button class="opt" onclick="pickMulti(1,this,'Diseño','El diseño de un espacio define cómo te sientes dentro de él.')"><div class="opt-dot">✓</div><div><div class="opt-main">Diseño</div></div></button>
+      <button class="opt" onclick="pickMulti(1,this,'Precio','Un buen precio en la zona correcta es una oportunidad real.')"><div class="opt-dot">✓</div><div><div class="opt-main">Precio</div></div></button>
+      <button class="opt" onclick="pickMulti(1,this,'Inversión','Pensar en largo plazo es la marca de una decisión inteligente.')"><div class="opt-dot">✓</div><div><div class="opt-main">Inversión</div></div></button>
+      <button class="opt" onclick="pickMulti(1,this,'Privacidad','La privacidad en casa no es un lujo. Es una necesidad.')"><div class="opt-dot">✓</div><div><div class="opt-main">Privacidad</div></div></button>
+      <button class="opt" onclick="pickMulti(1,this,'Espacios','Los espacios correctos cambian la calidad de vida.')"><div class="opt-dot">✓</div><div><div class="opt-main">Espacios</div></div></button>
     </div>
     <div class="reaction" id="r1"></div>
   </div>
@@ -233,7 +234,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
     <button class="opt" onclick="pick(4,this,'Fovissste','El Fovissste tiene esquemas muy accesibles para trabajadores del Estado.',5)"><div class="opt-dot">✓</div><div><div class="opt-main">Fovissste</div><div class="opt-sub">Soy trabajador del Estado</div></div></button>
     <button class="opt" onclick="pick(4,this,'Recursos propios','La compra más limpia y rápida posible. Sin intermediarios financieros.',25)"><div class="opt-dot">✓</div><div><div class="opt-main">Recursos propios</div><div class="opt-sub">Compra directa, sin crédito</div></div></button>
     <button class="opt" onclick="pick(4,this,'Crédito + recursos propios','Una combinación inteligente para optimizar tu liquidez.',15)"><div class="opt-dot">✓</div><div><div class="opt-main">Crédito + recursos propios</div><div class="opt-sub">Enganche propio y complemento con crédito</div></div></button>
-    <button class="opt" onclick="pick(4,this,'Otro','Cuéntame más cuando hablemos — encontramos el esquema correcto juntos.',0)"><div class="opt-dot">✓</div><div><div class="opt-main">Otro</div><div class="opt-sub">Tengo otro esquema en mente</div></div></button>
+    <button class="opt" id="opt-otro-q4" onclick="pick(4,this,'Otro','Cuéntame más cuando hablemos — encontramos el esquema correcto juntos.',0);toggleOtro()"><div class="opt-dot">✓</div><div><div class="opt-main">Otro</div><div class="opt-sub">Tengo otro esquema en mente</div></div></button>
+    <div id="otro-input-wrap" style="display:none;margin-top:12px;animation:fadeUp 0.3s ease forwards;">
+      <input type="text" id="otroInput" placeholder="¿Cuál es tu esquema?" maxlength="120" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(198,168,107,0.3);border-radius:1px;padding:13px 16px;font-family:Montserrat,sans-serif;font-size:13px;font-weight:400;color:var(--white);outline:none;-webkit-appearance:none;box-sizing:border-box;" oninput="ans['q4']='Otro: '+this.value;this.style.borderColor=this.value.trim()?'var(--gold)':'rgba(198,168,107,0.3)'">
+    </div>
     <div class="reaction" id="r4"></div>
   </div>
 
@@ -440,6 +444,31 @@ function pick(q, el, val, reaction, score){
   if(r && reaction){ r.textContent=reaction; r.classList.add('show'); }
 }
 
+// Q1: selección múltiple
+var q1Selected = {};
+function pickMulti(q, el, val, reaction){
+  if(q1Selected[val]){
+    delete q1Selected[val];
+    el.classList.remove('on');
+  } else {
+    q1Selected[val] = true;
+    el.classList.add('on');
+  }
+  var keys = Object.keys(q1Selected);
+  ans['q1'] = keys.join(', ');
+  var r = document.getElementById('r1');
+  if(r && reaction && keys.length > 0){ r.textContent = reaction; r.classList.add('show'); }
+}
+
+// Q4: mostrar/ocultar campo Otro
+function toggleOtro(){
+  var wrap = document.getElementById('otro-input-wrap');
+  var optOtro = document.getElementById('opt-otro-q4');
+  var isOn = optOtro.classList.contains('on');
+  wrap.style.display = isOn ? 'block' : 'none';
+  if(isOn){ setTimeout(function(){ document.getElementById('otroInput').focus(); }, 50); }
+}
+
 function moveSlider(v){
   document.getElementById('sliderNum').textContent = v;
   var pct = ((v-1)/9*100);
@@ -474,11 +503,21 @@ function diagNext(){
     updStep();
     return;
   }
+  // Validar Q1: debe haber al menos una selección
+  if(step===1 && Object.keys(q1Selected).length===0){
+    var hint = document.querySelector('#step-1 .q-hint');
+    hint.style.color='#e8a060';
+    hint.textContent='Selecciona al menos una opción para continuar.';
+    return;
+  }
   if(step===6){
     var v=parseInt(document.getElementById('sliderInput').value);
     ans['q6']=v; pts['q6']=v>=9?30:v>=7?20:v>=5?10:0;
   }
   if(step===TOTAL){
+    var nextBtn=document.getElementById('nextBtn');
+    nextBtn.disabled=true;
+    nextBtn.style.opacity='0.6';
     if(ans['q7']==='Hablar directamente con Enrique'){
       goWA();
       setTimeout(sendZap, 0);
