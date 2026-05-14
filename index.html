@@ -479,8 +479,14 @@ function diagNext(){
     ans['q6']=v; pts['q6']=v>=9?30:v>=7?20:v>=5?10:0;
   }
   if(step===TOTAL){
-    if(ans['q7']==='Hablar directamente con Enrique'){ sendZap(); goWA(); return; }
-    sendZap(); show('propiedad'); return;
+    if(ans['q7']==='Hablar directamente con Enrique'){
+      goWA();
+      setTimeout(sendZap, 0);
+      return;
+    }
+    show('propiedad');
+    setTimeout(sendZap, 0);
+    return;
   }
   document.getElementById('step-'+step).classList.remove('active');
   step++;
@@ -528,56 +534,19 @@ function agendarWA(){
 
 function sendZap(){
   if(!C.webhook) return;
-  var now=new Date();
-  /*
-   * ZAPIER — Cómo funciona esta conexión:
-   * 1. Se envía un POST en JSON al webhook de Zapier (Catch Hook).
-   * 2. Zapier recibe los campos listos para mapear a Airtable:
-   *    nombre, propiedad, fecha, hora, atencion, cambio, intencion,
-   *    metodo, gastos, decision, preferencia, score, clasificacion,
-   *    estado, fuente.
-   * 3. En Zapier: Trigger = "Webhooks by Zapier > Catch Hook"
-   *              Action  = "Airtable > Create Record"
-   *    Mapea cada campo de Zapier a la columna exacta en Airtable.
-   * 4. Asegúrate de que el Zap esté PUBLICADO (toggle ON).
-   *    En modo borrador o test, Zapier solo acepta peticiones
-   *    mientras la pantalla de "Test trigger" está abierta.
-   */
-  var sc=calcScore();
+  var now=new Date(), sc=calcScore();
   var data={
-    nombre:prospectNombre,
-    propiedad:C.nombre,
-    fecha:now.toLocaleDateString('es-MX'),
-    hora:now.toLocaleTimeString('es-MX'),
-    atencion:ans['q1']||'',
-    cambio:ans['q2']||'',
-    intencion:ans['q3']||'',
-    metodo:ans['q4']||'',
-    gastos:ans['q5']||'',
-    decision:String(ans['q6']||5),
-    preferencia:ans['q7']||'',
-    score:String(sc),
-    clasificacion:classify(sc),
-    estado:'Nuevo',
-    fuente:'Experiencia Privada Web'
+    nombre:prospectNombre, propiedad:C.nombre,
+    fecha:now.toLocaleDateString('es-MX'), hora:now.toLocaleTimeString('es-MX'),
+    atencion:ans['q1']||'', cambio:ans['q2']||'', intencion:ans['q3']||'',
+    metodo:ans['q4']||'', gastos:ans['q5']||'', decision:String(ans['q6']||5),
+    preferencia:ans['q7']||'', score:String(sc), clasificacion:classify(sc),
+    estado:'Nuevo', fuente:'Experiencia Privada Web'
   };
-  /* Intento principal: fetch JSON */
-  fetch(C.webhook,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(data)
-  }).then(function(r){
-    if(!r.ok) throw new Error('HTTP '+r.status);
-  }).catch(function(e){
-    /* Fallback: si fetch falla (CORS/red), intenta via URL params */
-    try{
-      var qs=Object.keys(data).map(function(k){
-        return encodeURIComponent(k)+'='+encodeURIComponent(data[k]);
-      }).join('&');
-      var img=new Image();
-      img.src=C.webhook+'?'+qs;
-    }catch(e2){console.warn('Zapier fallback error:',e2);}
-    console.warn('Zapier fetch error:',e);
+  fetch(C.webhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+  .catch(function(){
+    var img=new Image();
+    img.src=C.webhook+'?'+Object.keys(data).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(data[k]);}).join('&');
   });
 }
 </script>
