@@ -181,11 +181,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
     <div class="q-num">Antes de comenzar</div>
     <div class="q-title">¿Cómo te <em>llamas?</em></div>
     <div class="q-hint">Para personalizar tu diagnóstico privado.</div>
-    <input type="text" id="inputNombre" placeholder="Escribe tu nombre aquí…" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(198,168,107,0.2);border-radius:1px;padding:14px 16px;font-family:Montserrat,sans-serif;font-size:14px;font-weight:400;color:var(--white);outline:none;-webkit-appearance:none;margin-top:8px;box-sizing:border-box;" oninput="this.style.borderColor=this.value.trim()?'var(--gold)':'rgba(198,168,107,0.2)'">
-    <div style="font-size:9px;color:rgba(255,255,255,0.18);margin-top:10px;letter-spacing:0.5px;">Solo para identificar tu diagnóstico. No se comparte con nadie más.</div>
-    <div class="q-title" style="margin-top:28px;">¿Cuál es tu <em>WhatsApp?</em></div>
-    <div class="q-hint">Para enviarte la información y coordinar tu visita.</div>
-    <input type="tel" id="inputTelefono" placeholder="Ej. 777 123 4567" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(198,168,107,0.2);border-radius:1px;padding:14px 16px;font-family:Montserrat,sans-serif;font-size:14px;font-weight:400;color:var(--white);outline:none;-webkit-appearance:none;margin-top:8px;box-sizing:border-box;" oninput="this.style.borderColor=this.value.trim()?'var(--gold)':'rgba(198,168,107,0.2)'">
+    <input type="text" id="inputNombre" placeholder="Escribe tu nombre aquí…" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(198,168,107,0.2);border-radius:1px;padding:14px 16px;font-family:Montserrat,sans-serif;font-size:14px;font-weight:400;color:var(--white);outline:none;-webkit-appearance:none;margin-top:8px;box-sizing:border-box;" oninput="this.style.borderColor=this.value.trim()?'var(--gold)':'rgba(198,168,107,0.2)'"><div style="font-size:9px;color:rgba(255,255,255,0.18);margin-top:10px;letter-spacing:0.5px;">Solo para identificar tu diagnóstico. No se comparte con nadie más.</div>
+    <input type="tel" id="inputTelefono" placeholder="Tu WhatsApp…" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(198,168,107,0.2);border-radius:1px;padding:14px 16px;font-family:Montserrat,sans-serif;font-size:14px;font-weight:400;color:var(--white);outline:none;-webkit-appearance:none;margin-top:12px;box-sizing:border-box;" oninput="this.style.borderColor=this.value.trim()?'var(--gold)':'rgba(198,168,107,0.2)'"/>
   </div>
 
   <!-- Q1 -->
@@ -500,16 +497,8 @@ function diagNext(){
       inp.focus();
       return;
     }
-    var t=document.getElementById('inputTelefono').value.trim();
-    if(!t){
-      var tel=document.getElementById('inputTelefono');
-      tel.style.borderColor='#e8a060';
-      tel.placeholder='Escribe tu WhatsApp para continuar…';
-      tel.focus();
-      return;
-    }
     prospectNombre = n;
-    prospectTelefono = t;
+    prospectTelefono = document.getElementById('inputTelefono').value.trim();
     document.getElementById('step-0').classList.remove('active');
     step=1;
     document.getElementById('step-1').classList.add('active');
@@ -611,7 +600,6 @@ function sendZap(){
     method: 'POST',
     body: formData
   }).catch(function(e){ console.warn('Zapier error:', e); });
-}
 }
 </script>
 </body>
